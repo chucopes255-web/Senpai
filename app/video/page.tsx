@@ -8,90 +8,87 @@ function VideoContent() {
   const chapter = searchParams.get("chapter") || "General";
   
   const [loading, setLoading] = useState(true);
-  const [script, setScript] = useState<any>(null);
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [videoData, setVideoData] = useState<any>(null);
 
   useEffect(() => {
-    async function fetchScript() {
+    async function fetchVideo() {
       try {
-        const res = await fetch("/api/generate-script", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chapter })
-        });
+        const res = await fetch(`/api/get-video?chapter=${encodeURIComponent(chapter)}`);
         const data = await res.json();
-        setScript(data);
+        if (data.found) {
+          setVideoData(data.script);
+        }
       } catch (e) {
         console.error(e);
       } finally {
         setLoading(false);
       }
     }
-    fetchScript();
+    fetchVideo();
   }, [chapter]);
 
-  useEffect(() => {
-    if (script && script.slides && script.slides[currentSlide]) {
-      const textToSpeak = script.slides[currentSlide].narration;
-      const utterance = new SpeechSynthesisUtterance(textToSpeak);
-      utterance.lang = "en-IN"; 
-      utterance.rate = 0.9; 
-      
-      window.speechSynthesis.cancel(); 
-      window.speechSynthesis.speak(utterance);
+  // Google Drive link ko preview link mein badalne ka function (Bina ads ke chalega)
+  function getEmbedUrl(url: string) {
+    if (!url) return "";
+    // Agar link Google Drive ka hai (jaise /file/d/VIDEO_ID/view)
+    const driveRegex = /\/file\/d\/([a-zA-Z0-9_-]+)/;
+    const match = url.match(driveRegex);
+    if (match && match[1]) {
+      return `https://drive.google.com/file/d/${match[1]}/preview`;
     }
-    return () => window.speechSynthesis.cancel();
-  }, [currentSlide, script]);
+    // Agar normal YouTube link hai toh fallback
+    if (url.includes("youtu.be/")) return url.replace("youtu.be/", "www.youtube.com/embed/");
+    if (url.includes("watch?v=")) return url.replace("watch?v=", "www.youtube.com/embed/");
+    return url;
+  }
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center text-xl font-bold animate-pulse text-blue-600">🎬 AI Video aur Awaz Generate Ho Rahi Hai...</div>;
+    return <div className="min-h-screen flex items-center justify-center text-xl font-bold text-purple-600">Loading Video...</div>;
   }
 
-  if (!script || !script.slides) {
-    return <div className="min-h-screen flex items-center justify-center text-red-500">Error: Video nahi ban payi. Dobara try karo.</div>;
+  if (!videoData || !videoData.video_url) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+        <h2 className="text-xl font-bold text-red-500 mb-2">Video Nahi Mili!</h2>
+        <p className="text-gray-500 mb-4">Is chapter ki video abhi upload nahi hui hai.</p>
+        <button onClick={() => router.back()} className="bg-purple-600 text-white px-6 py-2 rounded-lg">Wapas Jayein</button>
+      </div>
+    );
   }
-
-  const slide = script.slides[currentSlide];
 
   return (
-    <main className="min-h-screen bg-black text-white p-6 flex flex-col">
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-xl font-bold text-gray-300">{script.title}</h2>
-        <button onClick={() => { window.speechSynthesis.cancel(); router.push("/"); }} className="text-sm bg-gray-800 px-4 py-2 rounded">Close ❌</button>
+    <main className="min-h-screen bg-gray-50 pb-10">
+      {/* Top Bar */}
+      <div className="bg-white px-4 py-3 flex items-center gap-3 shadow-sm sticky top-0 z-10">
+        <button onClick={() => router.back()} className="text-2xl text-gray-600">←</button>
+        <h1 className="text-lg font-bold text-gray-800 truncate">{videoData.title}</h1>
       </div>
 
-      <div className="flex-1 flex flex-col justify-center items-center text-center bg-gray-900 rounded-2xl p-8 border border-gray-800">
-        <h1 className="text-3xl font-bold mb-8 text-blue-400">{slide.heading}</h1>
-        <ul className="text-xl space-y-4 text-left">
-          {slide.bullets.map((b: string, i: number) => (
-            <li key={i} className="flex items-center gap-3">
-              <span className="text-green-400">✔</span> {b}
-            </li>
-          ))}
-        </ul>
+      {/* Video Player (No Ads, Clean View) */}
+      <div className="w-full aspect-video bg-black relative">
+        <iframe
+          src={getEmbedUrl(videoData.video_url)}
+          className="w-full h-full border-none"
+          allow="autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+        ></iframe>
       </div>
 
-      <div className="mt-8 flex justify-between items-center">
-        <button 
-          onClick={() => setCurrentSlide(c => Math.max(0, c - 1))}
-          disabled={currentSlide === 0}
-          className="bg-gray-700 px-6 py-3 rounded-lg disabled:opacity-50"
-        >
-          ◀ Previous
-        </button>
-        <span className="text-gray-500 font-mono">Slide {currentSlide + 1} / {script.slides.length}</span>
-        <button 
-          onClick={() => {
-            if (currentSlide < script.slides.length - 1) setCurrentSlide(c => c + 1);
-            else {
-              window.speechSynthesis.cancel();
-              alert("Video khatam! Ab Tutor se doubt pucho.");
-            }
-          }}
-          className="bg-blue-600 px-6 py-3 rounded-lg font-bold"
-        >
-          {currentSlide === script.slides.length - 1 ? "Finish" : "Next ▶"}
-        </button>
+      {/* Video Details / Notes */}
+      <div className="p-4">
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+          <h2 className="text-xl font-bold text-gray-800 mb-2">About this lesson</h2>
+          <p className="text-gray-600 text-sm mb-4">
+            Ye video {videoData.title} ke baare mein hai. Video dekhne ke baad aap AI Tutor se sawal bhi puch sakte hain.
+          </p>
+          
+          <button 
+            onClick={() => router.push(`/tutor?chapter=${encodeURIComponent(chapter)}`)}
+            className="w-full bg-purple-50 text-purple-700 font-bold py-3 rounded-xl border border-purple-100 flex items-center justify-center gap-2"
+          >
+            🎙️ Ask AI Tutor about this chapter
+          </button>
+        </div>
       </div>
     </main>
   );
@@ -99,7 +96,7 @@ function VideoContent() {
 
 export default function VideoPlayer() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-white bg-black">Loading Video...</div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
       <VideoContent />
     </Suspense>
   );
