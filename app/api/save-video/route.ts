@@ -9,6 +9,7 @@ export async function POST(req: Request) {
   try {
     const { chapter, script } = await req.json();
 
+    // Agar video already bani hui hai, toh hum seedha save karenge
     const { data, error } = await supabase
       .from("chapters")
       .insert([
@@ -18,14 +19,11 @@ export async function POST(req: Request) {
           class: 10, 
           subject: "Science", 
           chapter_no: 1,
-          script_json: script // Video ka poora JSON data
+          script_json: script // Isme ab video_url hoga
         }
       ]);
 
-    if (error) {
-      console.error("Supabase Error:", error);
-      throw error;
-    }
+    if (error) throw error;
     
     return Response.json({ success: true, data });
 
