@@ -18,7 +18,7 @@ export default function Home() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          chapter: "Class 10 Science — Light: Reflection and Refraction",
+          chapter: "Class 10 Science — Light",
           message: input,
           history: messages.map((m) => ({
             role: m.role === "user" ? "user" : "model",
@@ -27,17 +27,20 @@ export default function Home() {
         }),
       });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.reply || "Server error aa gaya bhai");
-      }
+      if (!res.ok) throw new Error("Network error");
 
       const data = await res.json();
-      setMessages((m) => [...m, { role: "tutor", text: data.reply }]);
+      
+      if (data.reply && data.reply.startsWith("SERVER_ERROR")) {
+        setMessages((m) => [...m, { role: "tutor", text: "⚠️ " + data.reply }]);
+      } else {
+        setMessages((m) => [...m, { role: "tutor", text: data.reply }]);
+      }
+
     } catch (err: any) {
-      setMessages((m) => [...m, { role: "tutor", text: "⚠️ " + err.message }]);
+      setMessages((m) => [...m, { role: "tutor", text: "⚠️ Error: " + err.message }]);
     } finally {
-      setLoading(false);
+      setLoading(false); // Ab hamesha band hoga
     }
   }
 
@@ -48,7 +51,6 @@ export default function Home() {
           <h1 className="text-2xl font-bold text-black">🎓 Senpai Tutor</h1>
           <p className="text-sm text-gray-500">Class 10 Science — Light</p>
         </div>
-        {/* Clear Chat Button */}
         <button 
           onClick={() => setMessages([])} 
           className="text-sm bg-red-100 text-red-600 px-3 py-1 rounded-md"
@@ -58,16 +60,10 @@ export default function Home() {
       </div>
 
       <div className="flex-1 space-y-3 mb-4">
-        {messages.length === 0 && (
-          <p className="text-gray-400">Ask me anything about Light 👇</p>
-        )}
+        {messages.length === 0 && <p className="text-gray-400">Ask me anything about Light 👇</p>}
         {messages.map((m, i) => (
           <div key={i} className={m.role === "user" ? "text-right" : "text-left"}>
-            <div
-              className={`inline-block p-3 rounded-lg max-w-[80%] ${
-                m.role === "user" ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-black shadow-sm"
-              }`}
-            >
+            <div className={`inline-block p-3 rounded-lg max-w-[80%] ${m.role === "user" ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-black shadow-sm"}`}>
               {m.text}
             </div>
           </div>
