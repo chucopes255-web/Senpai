@@ -1,8 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-export default function VideoPlayer() {
+function VideoContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const chapter = searchParams.get("chapter") || "General";
@@ -11,7 +11,6 @@ export default function VideoPlayer() {
   const [script, setScript] = useState<any>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Script fetch karo
   useEffect(() => {
     async function fetchScript() {
       try {
@@ -31,24 +30,16 @@ export default function VideoPlayer() {
     fetchScript();
   }, [chapter]);
 
-  // Jab bhi slide change ho, awaz bolo
   useEffect(() => {
     if (script && script.slides && script.slides[currentSlide]) {
-      // Browser ki speech API
       const textToSpeak = script.slides[currentSlide].narration;
       const utterance = new SpeechSynthesisUtterance(textToSpeak);
-      
-      // Indian English voice set karo
       utterance.lang = "en-IN"; 
-      utterance.rate = 0.9; // Thoda slow taaki samajh aaye
+      utterance.rate = 0.9; 
       
-      // Pehle wali awaz band karo
       window.speechSynthesis.cancel(); 
-      // Nayi awaz shuru karo
       window.speechSynthesis.speak(utterance);
     }
-    
-    // Cleanup: Agar page chhoda toh awaz band ho jaye
     return () => window.speechSynthesis.cancel();
   }, [currentSlide, script]);
 
@@ -57,7 +48,7 @@ export default function VideoPlayer() {
   }
 
   if (!script || !script.slides) {
-    return <div className="min-h-screen flex items-center justify-center text-red-500">Error: Video nahi ban payi.</div>;
+    return <div className="min-h-screen flex items-center justify-center text-red-500">Error: Video nahi ban payi. Dobara try karo.</div>;
   }
 
   const slide = script.slides[currentSlide];
@@ -66,12 +57,12 @@ export default function VideoPlayer() {
     <main className="min-h-screen bg-black text-white p-6 flex flex-col">
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-xl font-bold text-gray-300">{script.title}</h2>
-        <button onClick={() => { window.speechSynthesis.cancel(); router.push("/choose"); }} className="text-sm bg-gray-800 px-4 py-2 rounded">Close ❌</button>
+        <button onClick={() => { window.speechSynthesis.cancel(); router.push("/"); }} className="text-sm bg-gray-800 px-4 py-2 rounded">Close ❌</button>
       </div>
 
       <div className="flex-1 flex flex-col justify-center items-center text-center bg-gray-900 rounded-2xl p-8 border border-gray-800">
-        <h1 className="text-4xl font-bold mb-8 text-blue-400">{slide.heading}</h1>
-        <ul className="text-2xl space-y-4 text-left">
+        <h1 className="text-3xl font-bold mb-8 text-blue-400">{slide.heading}</h1>
+        <ul className="text-xl space-y-4 text-left">
           {slide.bullets.map((b: string, i: number) => (
             <li key={i} className="flex items-center gap-3">
               <span className="text-green-400">✔</span> {b}
@@ -103,5 +94,13 @@ export default function VideoPlayer() {
         </button>
       </div>
     </main>
+  );
+}
+
+export default function VideoPlayer() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-white bg-black">Loading Video...</div>}>
+      <VideoContent />
+    </Suspense>
   );
 }
