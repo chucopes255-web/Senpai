@@ -1,15 +1,14 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Nayi API Key yahan hai
 const genAI = new GoogleGenerativeAI("AQ.Ab8RN6JWguAnPhBR5IozT_63fmiy7o34Zh_RNg7Cd4xgmv-VAQ");
 
 export async function POST(req: Request) {
   try {
     const { chapter, message, history } = await req.json();
 
-    // "gemini-1.5-flash" sabse fast aur latest model hai
+    // Model update kiya: gemini-2.5-flash
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       systemInstruction: `You are a warm, patient Indian tutor teaching "${chapter}".
 Speak in simple English (or Hindi if student writes Hindi).
 
