@@ -9,27 +9,26 @@ export async function POST(req: Request) {
 
     const { chapter } = await req.json();
 
-    const prompt = `Generate a lesson for "${chapter}". 
-IMPORTANT: All text (title, heading, bullets, narration) MUST be strictly in Hinglish (Hindi + English mixed, written in English script). For example: "Aao aaj Light ka reflection samajhte hain".
-Return ONLY a valid JSON object. Do not add any markdown or extra text outside the JSON.
-Use this exact structure:
+    // AI ko ekdum strict instruction diya hai
+    const prompt = `You are a JSON generator. Do not write any text, markdown, or explanations. 
+Generate a 4-slide lesson for "${chapter}" strictly in Hinglish.
+Return ONLY a JSON object. Use this exact structure:
 {
-  "title": "Topic name in Hinglish",
+  "title": "Topic name",
   "slides": [
-    { 
-      "heading": "Slide title in Hinglish", 
-      "bullets": ["Point 1 in Hinglish", "Point 2 in Hinglish"], 
-      "narration": "A 2-sentence explanation in Hinglish like a friendly teacher" 
-    }
+    { "heading": "Title", "bullets": ["Point 1", "Point 2"], "narration": "2 sentences explanation" }
   ]
-}
-Create exactly 4 slides. Max 3 bullets per slide.`;
+}`;
 
     const completion = await groq.chat.completions.create({
-      model: "openai/gpt-oss-120b", // Naya aur fast Groq model
-      messages: [{ role: "user", content: prompt }],
-      response_format: { type: "json_object" }, // Force JSON output
-      max_tokens: 1500,
+      model: "openai/gpt-oss-120b", 
+      messages: [
+        { role: "system", content: "You only output valid JSON. Nothing else." },
+        { role: "user", content: prompt }
+      ],
+      response_format: { type: "json_object" }, 
+      temperature: 0.1, // Temperature kam kar diya taaki AI boring aur strict rahe
+      max_tokens: 1000,
     });
 
     const content = completion.choices[0]?.message?.content;
@@ -42,6 +41,6 @@ Create exactly 4 slides. Max 3 bullets per slide.`;
     return Response.json(JSON.parse(content));
 
   } catch (error: any) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: "AI JSON Error: " + error.message }, { status: 500 });
   }
 }
