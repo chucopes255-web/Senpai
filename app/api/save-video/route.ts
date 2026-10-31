@@ -18,11 +18,15 @@ export async function POST(req: Request) {
           class: 10, 
           subject: "Science", 
           chapter_no: 1,
-          script_json: script // Poora script yahan save hoga
+          script_json: script // Video ka poora JSON data
         }
       ]);
 
-    if (error) throw error;
+    if (error) {
+      console.error("Supabase Error:", error);
+      throw error;
+    }
+    
     return Response.json({ success: true, data });
 
   } catch (error: any) {
