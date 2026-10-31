@@ -23,11 +23,11 @@ Speak in simple English (or Hindi if student writes Hindi).
       content: [{ type: "text", text: message }]
     });
 
-    // systemInstruction ab direct pass hoga, config ke andar nahi
+    // Yahan underscore (_) laga diya hai
     const interaction = await ai.interactions.create({
       model: "gemini-3.8-flash",
       input: formattedHistory,
-      systemInstruction: systemInstruction,
+      system_instruction: systemInstruction, 
     });
 
     return Response.json({ reply: interaction.output_text });
