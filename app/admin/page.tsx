@@ -20,6 +20,10 @@ export default function AdminPanel() {
       });
       const scriptData = await res.json();
 
+      if (scriptData.error) {
+        throw new Error(scriptData.error);
+      }
+
       setStatus("Supabase database mein save kar raha hai...");
 
       // 2. Database mein save karo
@@ -29,11 +33,13 @@ export default function AdminPanel() {
         body: JSON.stringify({ chapter, script: scriptData })
       });
 
+      const saveData = await saveRes.json();
+
       if (saveRes.ok) {
         setStatus("✅ Video successfully save ho gayi! Ab students ise search kar sakte hain.");
-        setChapter(""); // Clear input
+        setChapter(""); 
       } else {
-        setStatus("❌ Save karne mein error aaya.");
+        throw new Error(saveData.error || "Save karne mein error aaya.");
       }
     } catch (error: any) {
       setStatus("❌ Error: " + error.message);
@@ -44,7 +50,7 @@ export default function AdminPanel() {
 
   return (
     <main className="max-w-md mx-auto p-6 min-h-screen flex flex-col justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-2xl shadow-lg">
+      <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
         <h1 className="text-3xl font-bold mb-2 text-center text-gray-800">👑 Admin Panel</h1>
         <p className="text-center text-gray-500 mb-6 text-sm">Yahan se nayi video banayein</p>
 
@@ -65,7 +71,7 @@ export default function AdminPanel() {
         </button>
 
         {status && (
-          <p className="mt-4 text-center font-semibold text-gray-700 bg-gray-50 p-3 rounded">
+          <p className="mt-4 text-center font-semibold text-gray-700 bg-gray-50 p-3 rounded border">
             {status}
           </p>
         )}
