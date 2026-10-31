@@ -23,7 +23,7 @@ export default function AdminPanel() {
       if (data.error) throw new Error(data.error);
       
       setScriptData(data);
-      setStatus("✅ Script ready! Ab isko download karein ya video banakar link daalein.");
+      setStatus("✅ Script ready! Ab isko download karein.");
     } catch (error: any) {
       setStatus("❌ Error: " + error.message);
     } finally {
@@ -31,7 +31,6 @@ export default function AdminPanel() {
     }
   }
 
-  // Script ko TXT file ki tarah download karne ke liye
   function downloadScript() {
     if (!scriptData) return;
     const text = JSON.stringify(scriptData, null, 2);
@@ -43,9 +42,8 @@ export default function AdminPanel() {
     a.click();
   }
 
-  // Video Link (YouTube/MP4) save karne ke liye
   async function saveVideoToDB() {
-    if (!videoUrl) return alert("Video ka link daalein!");
+    if (!videoUrl) return alert("Video ka Google Drive link daalein!");
     setLoading(true);
     setStatus("Database mein save ho raha hai...");
 
@@ -57,7 +55,7 @@ export default function AdminPanel() {
           chapter, 
           script: { 
             title: scriptData.title, 
-            video_url: videoUrl, // YouTube link yahan save hoga
+            video_url: videoUrl, // Google Drive link yahan save hoga
             slides: scriptData.slides 
           } 
         })
@@ -84,7 +82,6 @@ export default function AdminPanel() {
       <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
         <h1 className="text-2xl font-bold mb-4 text-center text-gray-800">👑 Admin Panel</h1>
         
-        {/* Step 1: Chapter Input */}
         <input
           type="text"
           value={chapter}
@@ -100,24 +97,23 @@ export default function AdminPanel() {
           {loading ? "Wait..." : "1. Generate AI Script"}
         </button>
 
-        {/* Step 2: Script Download & Video Link */}
         {scriptData && (
           <div className="border-t pt-4 mt-2">
             <button
               onClick={downloadScript}
               className="w-full bg-green-100 text-green-700 border border-green-300 p-3 rounded-lg font-bold mb-3"
             >
-              ⬇️ Download Script (For Video Making)
+              ⬇️ Download Script (For Video)
             </button>
             
             <p className="text-xs text-gray-500 mb-2">
-              Script download karke video banayein. Fir wo video YouTube par upload karke uska link yahan daalein:
+              Video banakar <b>Google Drive</b> par upload karein (Anyone with link). Uska link yahan daalein:
             </p>
             <input
               type="text"
               value={videoUrl}
               onChange={(e) => setVideoUrl(e.target.value)}
-              placeholder="YouTube Video Link (e.g. https://youtu.be/xyz)"
+              placeholder="Google Drive Link (https://drive.google.com/...)"
               className="w-full p-3 border rounded-lg text-black mb-3"
             />
             <button
