@@ -2,9 +2,9 @@ import { OpenAI } from "openai";
 
 export async function POST(req: Request) {
   try {
-    // Key ko direct process.env se utha rahe hain
+    // Groq ke liye API key Vercel se aa rahi hai
     const groq = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY || "missing_key", 
+      apiKey: process.env.OPENAI_API_KEY || "missing_key",
       baseURL: "https://api.groq.com/openai/v1",
     });
 
@@ -17,6 +17,7 @@ Speak in simple English (or Hindi if student writes Hindi).
 - Wrong answer → "No worries, common mistake" → simpler example
 - Use real-life Indian examples (chai, cricket, mirrors)`;
 
+    // History ko format karna
     const messages = [
       { role: "system", content: systemInstruction },
       ...(history || []).map((h: any) => ({
@@ -27,9 +28,9 @@ Speak in simple English (or Hindi if student writes Hindi).
     ];
 
     const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-120b", // Naya aur fast model
       messages: messages,
-      max_tokens: 200,
+      max_tokens: 250,
     });
 
     const reply = completion.choices[0]?.message?.content || "Sorry, try again.";
