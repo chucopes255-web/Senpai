@@ -1,8 +1,8 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-export default function TutorChat() {
+function TutorContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const chapter = searchParams.get("chapter") || "General Topic";
@@ -14,13 +14,13 @@ export default function TutorChat() {
   // Jab naya tutor ka message aaye, toh bolo
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
-    if (lastMessage && lastMessage.role === "tutor") {
+    if (lastMessage && lastMessage.role === "tutor" && !lastMessage.text.startsWith("⚠️")) {
       const utterance = new SpeechSynthesisUtterance(lastMessage.text);
-      utterance.lang = "en-IN"; // Indian English
+      utterance.lang = "en-IN"; 
       utterance.rate = 0.95;
       
-      window.speechSynthesis.cancel(); // Purani awaz band karo
-      window.speechSynthesis.speak(utterance); // Nayi bolo
+      window.speechSynthesis.cancel(); 
+      window.speechSynthesis.speak(utterance); 
     }
   }, [messages]);
 
@@ -59,7 +59,7 @@ export default function TutorChat() {
   return (
     <main className="max-w-2xl mx-auto p-4 min-h-screen flex flex-col bg-gray-50">
       <div className="flex items-center gap-2 mb-4">
-        <button onClick={() => { window.speechSynthesis.cancel(); router.push("/choose"); }} className="text-blue-600 font-bold">← Back</button>
+        <button onClick={() => { window.speechSynthesis.cancel(); router.push("/"); }} className="text-blue-600 font-bold">← Back</button>
         <h1 className="text-lg font-bold text-gray-800 truncate">{chapter}</h1>
       </div>
 
@@ -97,5 +97,13 @@ export default function TutorChat() {
         </button>
       </div>
     </main>
+  );
+}
+
+export default function TutorChat() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-gray-500">Loading Tutor...</div>}>
+      <TutorContent />
+    </Suspense>
   );
 }
