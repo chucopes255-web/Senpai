@@ -5,149 +5,158 @@ import { useRouter } from "next/navigation";
 export default function Home() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Admin Login ke liye states
+  const [clickCount, setClickCount] = useState(0);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [phone, setPhone] = useState("");
+  const ADMIN_PHONE = "9811403424";
 
-  // Ye humare dummy batches hain (baad mein inhe database se laa sakte hain)
-  const popularBatches = [
-    { title: "Class 10 Science - Light", tag: "Physics", color: "bg-blue-100 text-blue-600" },
-    { title: "The Living World", tag: "Biology", color: "bg-green-100 text-green-600" },
-    { title: "Chemical Reactions", tag: "Chemistry", color: "bg-purple-100 text-purple-600" },
-    { title: "Quadratic Equations", tag: "Maths", color: "bg-orange-100 text-orange-600" },
+  const categories = [
+    { name: "Physics", icon: "⚛️", color: "bg-blue-100 text-blue-600" },
+    { name: "Chemistry", icon: "🧪", color: "bg-green-100 text-green-600" },
+    { name: "Biology", icon: "🧬", color: "bg-pink-100 text-pink-600" },
+    { name: "Maths", icon: "📐", color: "bg-orange-100 text-orange-600" },
   ];
 
-  function handleSearch() {
-    if (searchQuery.trim()) {
-      // Direct Tutor page par bhej do
-      router.push(`/tutor?chapter=${encodeURIComponent(searchQuery)}`);
+  // Secret Admin Login Logic (Profile pe 3 baar click karo)
+  function handleProfileClick() {
+    setClickCount(prev => prev + 1);
+    if (clickCount >= 2) { // 3rd click par open hoga
+      setShowAdminLogin(true);
+      setClickCount(0);
+    }
+  }
+
+  function loginAdmin() {
+    if (phone === ADMIN_PHONE) {
+      router.push("/admin");
+    } else {
+      alert("Galat Number! Aap Admin nahi hain.");
     }
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 pb-20">
-      {/* Top Header */}
-      <header className="bg-white px-4 py-3 flex justify-between items-center sticky top-0 z-10 shadow-sm">
-        <div className="flex items-center gap-3">
-          <button className="text-2xl text-gray-600">☰</button>
-          <div className="bg-gray-100 px-3 py-1 rounded-full text-xs font-semibold text-gray-700 flex items-center gap-1">
-            🎓 Senpai AI <span className="text-gray-400">▼</span>
+    <main className="min-h-screen bg-[#F8F9FB] pb-24 font-sans relative">
+      
+      {/* 1. HEADER & SEARCH */}
+      <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-b-[2.5rem] px-5 pt-12 pb-8 shadow-xl relative overflow-hidden">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <p className="text-purple-200 text-xs font-semibold">Welcome back 👋</p>
+            <h1 className="text-white font-bold text-2xl">Senpai Learner</h1>
           </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <button className="text-xl">🔔</button>
-          <div className="h-8 w-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold">
-            S
-          </div>
-        </div>
-      </header>
-
-      {/* Search Bar Section */}
-      <div className="bg-white p-4 pb-6 rounded-b-3xl shadow-sm">
-        <h2 className="text-lg font-bold text-gray-800 mb-3">Kya padhna hai aaj?</h2>
-        <div className="flex gap-2">
-          <div className="flex-1 bg-gray-100 rounded-xl flex items-center px-3 py-2 border border-gray-200">
-            <span className="text-gray-400 mr-2">🔍</span>
-            <input
-              type="text"
-              placeholder="Search for chapters..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              className="bg-transparent w-full outline-none text-sm text-black"
-            />
-          </div>
-          <button 
-            onClick={handleSearch}
-            className="bg-purple-500 text-white px-5 py-2 rounded-xl font-semibold text-sm shadow-md"
-          >
-            Study
+          <button onClick={handleProfileClick} className="h-10 w-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30">
+            👤
           </button>
         </div>
-      </div>
 
-      {/* Promo Banner (PW style) */}
-      <div className="px-4 mt-4">
-        <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-2xl p-5 relative overflow-hidden flex items-center shadow-lg">
-          <div className="z-10 w-2/3">
-            <p className="text-white text-lg font-bold leading-tight mb-1">Learn with AI Tutor</p>
-            <p className="text-gray-300 text-xs mb-3">Instant doubts solving, videos, aur notes — sab kuch ek jagah.</p>
-            <button 
-              onClick={() => router.push('/admin')}
-              className="bg-blue-500 text-white text-xs px-4 py-2 rounded-lg font-semibold"
-            >
-              Create Video (Admin)
-            </button>
-          </div>
-          <div className="absolute right-[-10px] bottom-[-10px] text-6xl opacity-30">
-            🤖
-          </div>
+        <div className="bg-white rounded-2xl flex items-center px-4 py-3 shadow-lg">
+          <span className="text-gray-400 mr-2">🔍</span>
+          <input
+            type="text"
+            placeholder="Search chapter..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && searchQuery && router.push(`/tutor?chapter=${encodeURIComponent(searchQuery)}`)}
+            className="bg-transparent w-full outline-none text-sm text-gray-800"
+          />
         </div>
       </div>
 
-      {/* Filters (Dummy) */}
-      <div className="flex gap-3 px-4 mt-6 overflow-x-auto pb-2 scrollbar-hide">
-        <span className="bg-purple-100 text-purple-700 px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap border border-purple-200">Trending</span>
-        <span className="bg-white text-gray-600 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border border-gray-200">JEE</span>
-        <span className="bg-white text-gray-600 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border border-gray-200">NEET</span>
-        <span className="bg-white text-gray-600 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border border-gray-200">Class 10</span>
+      {/* 2. CATEGORIES */}
+      <div className="px-5 mt-6">
+        <h3 className="font-bold text-gray-800 text-lg mb-4">Explore Subjects</h3>
+        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+          {categories.map((cat, i) => (
+            <div key={i} className="flex flex-col items-center gap-2 min-w-[70px]">
+              <div className={`w-16 h-16 rounded-2xl ${cat.color} flex items-center justify-center text-3xl shadow-sm border border-white`}>
+                {cat.icon}
+              </div>
+              <span className="text-xs font-semibold text-gray-600">{cat.name}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Chapters / Batches List */}
-      <div className="px-4 mt-4 space-y-4">
-        <h3 className="font-bold text-gray-800 text-lg">Popular Chapters</h3>
-        
-        {popularBatches.map((batch, i) => (
-          <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className="flex justify-between items-start mb-3">
-              <div>
-                <span className={`text-[10px] font-bold px-2 py-1 rounded-md mb-2 inline-block ${batch.color}`}>
-                  {batch.tag}
-                </span>
-                <h4 className="font-bold text-gray-800 text-md leading-tight">{batch.title}</h4>
-              </div>
-              <span className="bg-yellow-100 text-yellow-700 text-[10px] font-bold px-2 py-1 rounded">New</span>
-            </div>
-            
-            <div className="flex gap-2 text-xs text-gray-500 mb-4">
-              <span>📹 Video Lessons</span>
-              <span>•</span>
-              <span>🎙️ Voice Tutor</span>
-            </div>
+      {/* 3. PREMIUM BANNER (Image ke saath) */}
+      <div className="px-5 mt-6">
+        <div className="bg-gray-900 rounded-3xl p-6 relative overflow-hidden shadow-xl flex items-center">
+          <div className="z-10 w-2/3">
+            <span className="bg-yellow-400 text-yellow-900 text-[10px] font-extrabold px-2 py-1 rounded-md mb-2 inline-block uppercase">
+              AI Powered
+            </span>
+            <h4 className="text-white text-xl font-bold leading-tight mb-1">Learn faster with AI Tutor</h4>
+            <p className="text-gray-400 text-xs mb-4">Clear your doubts instantly with voice.</p>
+            <button 
+              onClick={() => router.push('/tutor?chapter=General')}
+              className="bg-white text-gray-900 text-xs px-5 py-2.5 rounded-xl font-bold"
+            >
+              Start Learning
+            </button>
+          </div>
+          {/* Student Image */}
+          <img 
+            src="https://img.freepik.com/free-photo/happy-young-female-student-holding-notebooks-from-courses-smiling-camera-standing-spring-clothes-against-blue-background_1258-70161.jpg" 
+            alt="Student" 
+            className="absolute right-[-10px] bottom-0 h-40 object-cover rounded-tl-full opacity-80"
+          />
+        </div>
+      </div>
 
-            <div className="flex gap-2">
-              <button 
-                onClick={() => router.push(`/video?chapter=${encodeURIComponent(batch.title)}`)}
-                className="flex-1 bg-purple-50 text-purple-700 font-bold py-2 rounded-lg text-sm border border-purple-100"
-              >
-                Watch Video
-              </button>
-              <button 
-                onClick={() => router.push(`/tutor?chapter=${encodeURIComponent(batch.title)}`)}
-                className="flex-1 bg-purple-600 text-white font-bold py-2 rounded-lg text-sm shadow-md"
-              >
-                Ask Tutor
-              </button>
+      {/* 4. POPULAR COURSES (With Images) */}
+      <div className="px-5 mt-8">
+        <h3 className="font-bold text-gray-800 text-lg mb-4">Popular Batches</h3>
+        <div className="space-y-4">
+          
+          {/* Card 1 */}
+          <div className="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 flex gap-4">
+            <img src="https://img.freepik.com/free-photo/physic-formulas-blackboard_23-2148105751.jpg" className="w-24 h-24 rounded-xl object-cover" alt="Physics" />
+            <div className="flex flex-col justify-center flex-1">
+              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded w-max mb-1">PHYSICS</span>
+              <h4 className="font-bold text-gray-800 text-sm">Light - Reflection & Refraction</h4>
+              <button onClick={() => router.push('/video?chapter=Light')} className="mt-2 text-purple-600 text-xs font-bold text-left">▶ Watch Video</button>
             </div>
           </div>
-        ))}
+
+          {/* Card 2 */}
+          <div className="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 flex gap-4">
+            <img src="https://img.freepik.com/free-photo/dna-molecule-background_1150-19746.jpg" className="w-24 h-24 rounded-xl object-cover" alt="Biology" />
+            <div className="flex flex-col justify-center flex-1">
+              <span className="text-[10px] font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded w-max mb-1">BIOLOGY</span>
+              <h4 className="font-bold text-gray-800 text-sm">The Living World</h4>
+              <button onClick={() => router.push('/video?chapter=Living World')} className="mt-2 text-purple-600 text-xs font-bold text-left">▶ Watch Video</button>
+            </div>
+          </div>
+
+        </div>
       </div>
 
-      {/* Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-around py-3 pb-safe z-20">
-        <button className="flex flex-col items-center text-purple-600">
-          <span className="text-xl">🏠</span>
-          <span className="text-[10px] font-bold mt-1">Home</span>
-        </button>
-        <button onClick={() => router.push('/search')} className="flex flex-col items-center text-gray-400">
-          <span className="text-xl">🔍</span>
-          <span className="text-[10px] font-medium mt-1">Search</span>
-        </button>
-        <button className="flex flex-col items-center text-gray-400">
-          <span className="text-xl">📚</span>
-          <span className="text-[10px] font-medium mt-1">Library</span>
-        </button>
-        <button className="flex flex-col items-center text-gray-400">
-          <span className="text-xl">👤</span>
-          <span className="text-[10px] font-medium mt-1">Profile</span>
-        </button>
+      {/* SECRET ADMIN LOGIN MODAL */}
+      {showAdminLogin && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+            <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">👑 Admin Login</h2>
+            <input 
+              type="text" 
+              placeholder="Enter Admin Phone Number" 
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full border border-gray-300 p-3 rounded-lg mb-4 text-black"
+            />
+            <div className="flex gap-2">
+              <button onClick={() => setShowAdminLogin(false)} className="flex-1 bg-gray-100 text-gray-700 font-bold py-3 rounded-lg">Cancel</button>
+              <button onClick={loginAdmin} className="flex-1 bg-purple-600 text-white font-bold py-3 rounded-lg">Login</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* BOTTOM NAV */}
+      <nav className="fixed bottom-0 w-full bg-white border-t border-gray-100 flex justify-around py-3 pb-safe z-40">
+        <button className="text-purple-600 flex flex-col items-center"><span className="text-xl">🏠</span><span className="text-[10px] font-bold mt-1">Home</span></button>
+        <button onClick={() => router.push('/search')} className="text-gray-400 flex flex-col items-center"><span className="text-xl">🔍</span><span className="text-[10px] font-medium mt-1">Search</span></button>
+        <button className="text-gray-400 flex flex-col items-center"><span className="text-xl">📚</span><span className="text-[10px] font-medium mt-1">Library</span></button>
       </nav>
     </main>
   );
