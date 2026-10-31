@@ -38,7 +38,7 @@ Speak in simple English (or Hindi if student writes Hindi).
       
       // Agar 3.8 fail ho jaye, toh 2.5 use karo (jo zyada stable hai)
       const fallbackInteraction = await ai.interactions.create({
-        model: "gemini-2.5-flash",
+        model: "gemini-3.8-flash",
         input: formattedHistory,
         system_instruction: systemInstruction,
       });
