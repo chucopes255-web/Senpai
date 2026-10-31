@@ -1,14 +1,15 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Key ko seedha yahan daalo, bina tode
-const genAI = new GoogleGenerativeAI("AQ.Ab8RN6JeRXatOwWxqrGB3MtzjLuy0dPrfPpxgGy4lOvhbw1dKQ");
+// Nayi API Key yahan hai
+const genAI = new GoogleGenerativeAI("AQ.Ab8RN6JWguAnPhBR5IozT_63fmiy7o34Zh_RNg7Cd4xgmv-VAQ");
 
 export async function POST(req: Request) {
-  try { // <-- ERROR PAKADNE KE LIYE TRY-CATCH LAGAYA HAI
+  try {
     const { chapter, message, history } = await req.json();
 
+    // "gemini-1.5-flash" sabse fast aur latest model hai
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.0-pro", // <-- MODEL CHANGE KIYA HAI
+      model: "gemini-1.5-flash",
       systemInstruction: `You are a warm, patient Indian tutor teaching "${chapter}".
 Speak in simple English (or Hindi if student writes Hindi).
 
@@ -28,7 +29,6 @@ RULES:
 
   } catch (error: any) {
     console.error("GEMINI ERROR:", error);
-    // Agar error aaye toh frontend ko batao
-    return Response.json({ reply: "Bhai, AI se connect nahi ho pa raha. Check Vercel logs!" });
+    return Response.json({ reply: "Error: " + error.message });
   }
 }
