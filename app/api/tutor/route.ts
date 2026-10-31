@@ -23,14 +23,29 @@ Speak in simple English (or Hindi if student writes Hindi).
       content: [{ type: "text", text: message }]
     });
 
-    // Yahan underscore (_) laga diya hai
-    const interaction = await ai.interactions.create({
-      model: "gemini-3.8-flash",
-      input: formattedHistory,
-      system_instruction: systemInstruction, 
-    });
+    let replyText = "";
 
-    return Response.json({ reply: interaction.output_text });
+    // Fallback System: Pehle naya model try karega, fail hone par stable model
+    try {
+      const interaction = await ai.interactions.create({
+        model: "gemini-3.8-flash", 
+        input: formattedHistory,
+        system_instruction: systemInstruction,
+      });
+      replyText = interaction.output_text || "";
+    } catch (error: any) {
+      console.log("3.8-flash fail hua, ab dusre model se try kar rahe hain...");
+      
+      // Agar 3.8 fail ho jaye, toh 2.5 use karo (jo zyada stable hai)
+      const fallbackInteraction = await ai.interactions.create({
+        model: "gemini-2.5-flash",
+        input: formattedHistory,
+        system_instruction: systemInstruction,
+      });
+      replyText = fallbackInteraction.output_text || "";
+    }
+
+    return Response.json({ reply: replyText || "Sorry, AI is busy. Please try again." });
 
   } catch (error: any) {
     console.error("GEMINI ERROR:", error);
