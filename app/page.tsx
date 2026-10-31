@@ -1,86 +1,51 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function Home() {
-  const [messages, setMessages] = useState<{ role: string; text: string }[]>([]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  async function send() {
-    if (!input.trim()) return;
-    const userMsg = { role: "user", text: input };
-    setMessages((m) => [...m, userMsg]);
-    setInput("");
-    setLoading(true);
-
-    try {
-      const res = await fetch("/api/tutor", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chapter: "Class 10 Science — Light",
-          message: input,
-          history: messages.map((m) => ({
-            role: m.role === "user" ? "user" : "model",
-            parts: [{ text: m.text }],
-          })),
-        }),
-      });
-
-      if (!res.ok) throw new Error("Network error");
-
-      const data = await res.json();
-      
-      if (data.reply && data.reply.startsWith("SERVER_ERROR")) {
-        setMessages((m) => [...m, { role: "tutor", text: "⚠️ " + data.reply }]);
-      } else {
-        setMessages((m) => [...m, { role: "tutor", text: data.reply }]);
-      }
-
-    } catch (err: any) {
-      setMessages((m) => [...m, { role: "tutor", text: "⚠️ Error: " + err.message }]);
-    } finally {
-      setLoading(false); // Ab hamesha band hoga
-    }
-  }
+  const router = useRouter();
+  // Default chapter (tum ise change kar sakte ho)
+  const [chapter, setChapter] = useState("The Living World (Biology)");
 
   return (
-    <main className="max-w-2xl mx-auto p-4 min-h-screen flex flex-col bg-gray-50">
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h1 className="text-2xl font-bold text-black">🎓 Senpai Tutor</h1>
-          <p className="text-sm text-gray-500">Class 10 Science — Light</p>
-        </div>
-        <button 
-          onClick={() => setMessages([])} 
-          className="text-sm bg-red-100 text-red-600 px-3 py-1 rounded-md"
-        >
-          Clear Chat
-        </button>
-      </div>
+    <main className="max-w-md mx-auto p-6 min-h-screen flex flex-col justify-center bg-gray-50">
+      <h1 className="text-3xl font-bold text-center mb-2 text-gray-800">📚 Senpai AI</h1>
+      <p className="text-center text-gray-500 mb-8">Tumhara AI Teacher</p>
 
-      <div className="flex-1 space-y-3 mb-4">
-        {messages.length === 0 && <p className="text-gray-400">Ask me anything about Light 👇</p>}
-        {messages.map((m, i) => (
-          <div key={i} className={m.role === "user" ? "text-right" : "text-left"}>
-            <div className={`inline-block p-3 rounded-lg max-w-[80%] ${m.role === "user" ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-black shadow-sm"}`}>
-              {m.text}
-            </div>
-          </div>
-        ))}
-        {loading && <p className="text-gray-400">Tutor is thinking…</p>}
-      </div>
-
-      <div className="flex gap-2">
+      <div className="mb-8">
+        <label className="block text-sm font-medium text-gray-700 mb-2">Konsa chapter padhna hai?</label>
         <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && send()}
-          placeholder="Type your doubt…"
-          className="flex-1 border rounded-lg p-3 text-black shadow-sm"
+          type="text"
+          value={chapter}
+          onChange={(e) => setChapter(e.target.value)}
+          className="w-full p-3 border rounded-lg text-black bg-white shadow-sm"
+          placeholder="Chapter ka naam likho..."
         />
-        <button onClick={send} className="bg-blue-600 text-white px-6 rounded-lg font-semibold shadow-sm">
-          Send
+      </div>
+
+      <div className="space-y-4">
+        {/* VIDEO OPTION */}
+        <button
+          onClick={() => router.push(`/video?chapter=${encodeURIComponent(chapter)}`)}
+          className="w-full bg-white p-4 rounded-xl shadow border-2 border-transparent hover:border-blue-500 flex items-center gap-4 transition-all text-left"
+        >
+          <div className="text-4xl">🎬</div>
+          <div>
+            <h3 className="font-bold text-gray-800 text-lg">Watch Video</h3>
+            <p className="text-sm text-gray-500">AI 10 second mein video banayega</p>
+          </div>
+        </button>
+
+        {/* TUTOR OPTION */}
+        <button
+          onClick={() => router.push(`/tutor?chapter=${encodeURIComponent(chapter)}`)}
+          className="w-full bg-white p-4 rounded-xl shadow border-2 border-transparent hover:border-green-500 flex items-center gap-4 transition-all text-left"
+        >
+          <div className="text-4xl">🎙️</div>
+          <div>
+            <h3 className="font-bold text-gray-800 text-lg">Explain like a Tutor</h3>
+            <p className="text-sm text-gray-500">AI se baat karo step-by-step</p>
+          </div>
         </button>
       </div>
     </main>
