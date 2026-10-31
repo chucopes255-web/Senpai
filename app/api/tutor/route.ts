@@ -1,6 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
 
-// Vercel Environment Variable se key aa rahi hai
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function POST(req: Request) {
@@ -14,25 +13,21 @@ Speak in simple English (or Hindi if student writes Hindi).
 - Wrong answer → "No worries, common mistake" → simpler example
 - Use real-life Indian examples (chai, cricket, mirrors)`;
 
-    // Purani history ko naye format mein convert karna
     const formattedHistory = (history || []).map((h: any) => ({
       type: h.role === "user" ? "user_input" : "model_output",
       content: [{ type: "text", text: h.parts[0].text }]
     }));
 
-    // Naya message add karna
     formattedHistory.push({
       type: "user_input",
       content: [{ type: "text", text: message }]
     });
 
-    // Google ka naya 'interactions' method use kar rahe hain
+    // systemInstruction ab direct pass hoga, config ke andar nahi
     const interaction = await ai.interactions.create({
-      model: "gemini-3.8-flash", // Naya model
+      model: "gemini-3.8-flash",
       input: formattedHistory,
-      config: {
-        systemInstruction: systemInstruction,
-      },
+      systemInstruction: systemInstruction,
     });
 
     return Response.json({ reply: interaction.output_text });
